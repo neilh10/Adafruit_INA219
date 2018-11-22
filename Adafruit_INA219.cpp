@@ -398,7 +398,9 @@ void Adafruit_INA219::begin(void) {
 void Adafruit_INA219::init() {
   _i2c->begin();
   // Set chip to large range config values to start
-  setCalibration_32V_2A();
+  //setCalibration_32V_2A();
+  //#pragma message("Default 16V 400mA") ?? nh should be mode 
+  setCalibration_16V_400mA();
 }
 
 /**************************************************************************/
@@ -440,7 +442,7 @@ int16_t Adafruit_INA219::getCurrent_raw() {
   // reset the cal register, meaning CURRENT and POWER will
   // not be available ... avoid this by always setting a cal
   // value even if it's an unfortunate extra step
-  wireWriteRegister(INA219_REG_CALIBRATION, ina219_calValue);
+  //wireWriteRegister(INA219_REG_CALIBRATION, ina219_calValue);
 
   // Now we can safely read the CURRENT register!
   wireReadRegister(INA219_REG_CURRENT, &value);
@@ -461,7 +463,7 @@ int16_t Adafruit_INA219::getPower_raw() {
   // reset the cal register, meaning CURRENT and POWER will
   // not be available ... avoid this by always setting a cal
   // value even if it's an unfortunate extra step
-  wireWriteRegister(INA219_REG_CALIBRATION, ina219_calValue);
+  //wireWriteRegister(INA219_REG_CALIBRATION, ina219_calValue);
 
   // Now we can safely read the POWER register!
   wireReadRegister(INA219_REG_POWER, &value);
