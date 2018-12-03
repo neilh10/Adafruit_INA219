@@ -371,7 +371,7 @@ Adafruit_INA219::Adafruit_INA219(uint8_t addr) {
 
 /**************************************************************************/
 /*!
-    @brief  Setups the HW (defaults to 32V and 2A for calibration values)
+    @brief  Setups the HW
     @param theWire the TwoWire object to use
 */
 /**************************************************************************/
@@ -397,9 +397,8 @@ void Adafruit_INA219::begin(void) {
 /**************************************************************************/
 void Adafruit_INA219::init() {
   _i2c->begin();
-  // Set chip to large range config values to start
-  //setCalibration_32V_2A();
-  //#pragma message("Default 16V 400mA") ?? nh should be mode 
+  // Set chip to EnviroDIY range config values
+  #pragma message("EnviroDIY default 16V 400mA")  
   setCalibration_16V_400mA();
 }
 
