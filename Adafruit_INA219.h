@@ -139,6 +139,7 @@ public:
   float getCurrent_mA();
   float getPower_mW();
   void powerSave(bool on);
+  uint8_t setMode(uint8_t mode_req);
 
 private:
   TwoWire *_i2c;
@@ -157,6 +158,8 @@ private:
   int16_t getShuntVoltage_raw();
   int16_t getCurrent_raw();
   int16_t getPower_raw();
+  uint16_t mode_old=INA219_CONFIG_MODE_SANDBVOLT_CONTINUOUS; //Reset condition
+
 };
 
 #endif

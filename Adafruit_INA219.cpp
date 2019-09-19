@@ -157,6 +157,8 @@ void Adafruit_INA219::setCalibration_32V_2A() {
  *          boolean value
  */
 void Adafruit_INA219::powerSave(bool on) {
+/* This doesn't work as the register is a state not a bit
+    while it does work to putit in powerSave - its unpredicatable when 
   uint16_t current;
   wireReadRegister(INA219_REG_CONFIG, &current);
   uint8_t next;
@@ -165,7 +167,12 @@ void Adafruit_INA219::powerSave(bool on) {
   } else {
     next = current & ~INA219_CONFIG_MODE_POWERDOWN; 
   }
-  wireWriteRegister(INA219_REG_CONFIG, next);
+  wireWriteRegister(INA219_REG_CONFIG, next); */
+  if (on) {
+    mode_old= setMode(INA219_CONFIG_MODE_POWERDOWN); 
+  } else {
+    setMode(mode_old); 
+  }
 }
 
 
@@ -473,4 +480,20 @@ float Adafruit_INA219::getPower_mW() {
   float valueDec = getPower_raw();
   valueDec *= ina219_powerMultiplier_mW;
   return valueDec;
+}
+
+
+/*!
+ *  @brief  Sets the MODE 3 bits in reguster "Configuratiion"
+ *          config settings and current LSB
+ *  @return power reading converted to milliwatts
+ */
+uint8_t Adafruit_INA219::setMode(uint8_t mode_req) {
+  uint16_t config_current;
+  uint8_t config_next;
+  wireReadRegister(INA219_REG_CONFIG, &config_current);
+
+  config_next = ((config_current & ~INA219_CONFIG_MODE_MASK) | (mode_req & INA219_CONFIG_MODE_MASK)); 
+  wireWriteRegister(INA219_REG_CONFIG, config_next);
+  return  (config_current & INA219_CONFIG_MODE_MASK);
 }
