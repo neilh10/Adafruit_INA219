@@ -20,6 +20,12 @@
 #include "Arduino.h"
 #include <Wire.h>
 
+/** Begin range options **/
+enum {
+  INA219_RANGE_16V_400mA, 
+  INA219_RANGE_32V_1A,
+  INA219_RANGE_32V_2A 
+};
 /** default I2C address **/
 #define INA219_ADDRESS (0x40) // 1000000 (A0+A1=GND)
 
@@ -130,7 +136,7 @@ enum {
 class Adafruit_INA219 {
 public:
   Adafruit_INA219(uint8_t addr = INA219_ADDRESS);
-  void begin(TwoWire *theWire = &Wire);
+  void begin(TwoWire *theWire = &Wire, uint8_t range_type=INA219_RANGE_32V_2A);
   void setCalibration_32V_2A();
   void setCalibration_32V_1A();
   void setCalibration_16V_400mA();
@@ -145,13 +151,14 @@ private:
   TwoWire *_i2c;
 
   uint8_t ina219_i2caddr;
+  uint16_t ina219_config;
   uint32_t ina219_calValue;
   // The following multipliers are used to convert raw current and power
   // values to mA and mW, taking into account the current config settings
   uint32_t ina219_currentDivider_mA;
   float ina219_powerMultiplier_mW;
 
-  void init();
+  void init(uint8_t range_type);
   void wireWriteRegister(uint8_t reg, uint16_t value);
   void wireReadRegister(uint8_t reg, uint16_t *value);
   int16_t getBusVoltage_raw();

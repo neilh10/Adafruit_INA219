@@ -144,11 +144,11 @@ void Adafruit_INA219::setCalibration_32V_2A() {
   wireWriteRegister(INA219_REG_CALIBRATION, ina219_calValue);
 
   // Set Config register to take into account the settings above
-  uint16_t config = INA219_CONFIG_BVOLTAGERANGE_32V |
+  ina219_config = INA219_CONFIG_BVOLTAGERANGE_32V |
                     INA219_CONFIG_GAIN_8_320MV | INA219_CONFIG_BADCRES_12BIT |
                     INA219_CONFIG_SADCRES_12BIT_1S_532US |
                     INA219_CONFIG_MODE_SANDBVOLT_CONTINUOUS;
-  wireWriteRegister(INA219_REG_CONFIG, config);
+  wireWriteRegister(INA219_REG_CONFIG, ina219_config);
 }
 
 /*!
@@ -258,11 +258,11 @@ void Adafruit_INA219::setCalibration_32V_1A() {
   wireWriteRegister(INA219_REG_CALIBRATION, ina219_calValue);
 
   // Set Config register to take into account the settings above
-  uint16_t config = INA219_CONFIG_BVOLTAGERANGE_32V |
+  ina219_config = INA219_CONFIG_BVOLTAGERANGE_32V |
                     INA219_CONFIG_GAIN_8_320MV | INA219_CONFIG_BADCRES_12BIT |
                     INA219_CONFIG_SADCRES_12BIT_1S_532US |
                     INA219_CONFIG_MODE_SANDBVOLT_CONTINUOUS;
-  wireWriteRegister(INA219_REG_CONFIG, config);
+  wireWriteRegister(INA219_REG_CONFIG, ina219_config);
 }
 
 /*!
@@ -346,11 +346,11 @@ void Adafruit_INA219::setCalibration_16V_400mA() {
   wireWriteRegister(INA219_REG_CALIBRATION, ina219_calValue);
 
   // Set Config register to take into account the settings above
-  uint16_t config = INA219_CONFIG_BVOLTAGERANGE_16V |
+  ina219_config = INA219_CONFIG_BVOLTAGERANGE_16V |
                     INA219_CONFIG_GAIN_1_40MV | INA219_CONFIG_BADCRES_12BIT |
                     INA219_CONFIG_SADCRES_12BIT_1S_532US |
                     INA219_CONFIG_MODE_SANDBVOLT_CONTINUOUS;
-  wireWriteRegister(INA219_REG_CONFIG, config);
+  wireWriteRegister(INA219_REG_CONFIG, ina219_config);
 }
 
 /*!
@@ -367,18 +367,27 @@ Adafruit_INA219::Adafruit_INA219(uint8_t addr) {
  *  @brief  Setups the HW (defaults to 32V and 2A for calibration values)
  *  @param theWire the TwoWire object to use
  */
-void Adafruit_INA219::begin(TwoWire *theWire) {
+void Adafruit_INA219::begin(TwoWire *theWire,uint8_t range_type) {
   _i2c = theWire;
-  init();
+  init(range_type);
 }
 
 /*!
  *  @brief  begin I2C and set up the hardware
  */
-void Adafruit_INA219::init() {
+void Adafruit_INA219::init(uint8_t range_type) {
   _i2c->begin();
   // Set chip to large range config values to start
-  setCalibration_32V_2A();
+  switch (range_type) {
+    case INA219_RANGE_16V_400mA:
+      setCalibration_16V_400mA();
+      break;
+    case INA219_RANGE_32V_1A: 
+      setCalibration_32V_1A();
+      break;
+    default:  //INA219_RANGE_32V_2A
+      setCalibration_32V_2A();
+  }
 }
 
 /*!
@@ -489,11 +498,8 @@ float Adafruit_INA219::getPower_mW() {
  *  @return power reading converted to milliwatts
  */
 uint8_t Adafruit_INA219::setMode(uint8_t mode_req) {
-  uint16_t config_current;
-  uint8_t config_next;
-  wireReadRegister(INA219_REG_CONFIG, &config_current);
 
-  config_next = ((config_current & ~INA219_CONFIG_MODE_MASK) | (mode_req & INA219_CONFIG_MODE_MASK)); 
-  wireWriteRegister(INA219_REG_CONFIG, config_next);
-  return  (config_current & INA219_CONFIG_MODE_MASK);
+  ina219_config = ((ina219_config & ~INA219_CONFIG_MODE_MASK) | (mode_req & INA219_CONFIG_MODE_MASK)); 
+  wireWriteRegister(INA219_REG_CONFIG, ina219_config);
+  return  (ina219_config & INA219_CONFIG_MODE_MASK);
 }
