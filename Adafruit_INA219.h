@@ -119,6 +119,9 @@ enum {
 
 /** bus voltage register **/
 #define INA219_REG_BUSVOLTAGE (0x02)
+#define INA219_REG_BV_BD_POS   (0x03)
+#define INA219_REG_BV_CNVR_MSK (0x02)
+#define INA219_REG_BV_OVF_MSK  (0x01)
 
 /** power register **/
 #define INA219_REG_POWER (0x03)
@@ -144,13 +147,15 @@ public:
   float getShuntVoltage_mV();
   float getCurrent_mA();
   float getPower_mW();
-  void powerSave(bool on);
+  uint8_t getLastCnvrStatus();
+  void    powerSave(bool on);
   uint8_t setMode(uint8_t mode_req);
 
 private:
   TwoWire *_i2c;
 
   uint8_t ina219_i2caddr;
+  uint8_t ina219_CNVR_status=0;
   uint16_t ina219_config;
   uint32_t ina219_calValue;
   // The following multipliers are used to convert raw current and power
@@ -165,8 +170,6 @@ private:
   int16_t getShuntVoltage_raw();
   int16_t getCurrent_raw();
   int16_t getPower_raw();
-  uint16_t mode_old=INA219_CONFIG_MODE_SANDBVOLT_CONTINUOUS; //Reset condition
-
 };
 
 #endif

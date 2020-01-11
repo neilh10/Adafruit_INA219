@@ -157,21 +157,11 @@ void Adafruit_INA219::setCalibration_32V_2A() {
  *          boolean value
  */
 void Adafruit_INA219::powerSave(bool on) {
-/* This doesn't work as the register is a state not a bit
-    while it does work to putit in powerSave - its unpredicatable when 
-  uint16_t current;
-  wireReadRegister(INA219_REG_CONFIG, &current);
-  uint8_t next;
+  /* Tthe register setting is a state  */
   if (on) {
-    next = current | INA219_CONFIG_MODE_POWERDOWN; 
+    setMode(INA219_CONFIG_MODE_POWERDOWN); 
   } else {
-    next = current & ~INA219_CONFIG_MODE_POWERDOWN; 
-  }
-  wireWriteRegister(INA219_REG_CONFIG, next); */
-  if (on) {
-    mode_old= setMode(INA219_CONFIG_MODE_POWERDOWN); 
-  } else {
-    setMode(mode_old); 
+    setMode(INA219_CONFIG_MODE_SANDBVOLT_CONTINUOUS); 
   }
 }
 
@@ -391,15 +381,34 @@ void Adafruit_INA219::init(uint8_t range_type) {
 }
 
 /*!
+ *  @brief  Gets the last CNVR, Converted Complete received after a getBusVoltage_raw
+ *  @return the last CNVR 
+ */
+uint8_t Adafruit_INA219::getLastCnvrStatus() {
+  return ina219_CNVR_status;
+}
+
+/*!
  *  @brief  Gets the raw bus voltage (16-bit signed integer, so +-32767)
  *  @return the raw bus voltage reading
  */
 int16_t Adafruit_INA219::getBusVoltage_raw() {
   uint16_t value;
-  wireReadRegister(INA219_REG_BUSVOLTAGE, &value);
+  int16_t retValue=0;
 
-  // Shift to the right 3 to drop CNVR and OVF and multiply by LSB
-  return (int16_t)((value >> 3) * 4);
+  wireReadRegister(INA219_REG_BUSVOLTAGE, &value);
+  ina219_CNVR_status =INA219_REG_BV_CNVR_MSK & value;
+
+  if (ina219_CNVR_status) {
+    if (value & INA219_REG_BV_OVF_MSK) {
+      //Have invalid overflow
+      retValue = -1;
+    } else {
+      //Valid result Shift to the right 3 to drop CNVR and OVF and multiply by LSB
+      retValue = (int16_t)((value >> 3) * 4);
+    }
+  }
+  return retValue;
 }
 
 /*!
@@ -491,11 +500,10 @@ float Adafruit_INA219::getPower_mW() {
   return valueDec;
 }
 
-
 /*!
  *  @brief  Sets the MODE 3 bits in reguster "Configuratiion"
  *          config settings and current LSB
- *  @return power reading converted to milliwatts
+ *  @return 
  */
 uint8_t Adafruit_INA219::setMode(uint8_t mode_req) {
 
